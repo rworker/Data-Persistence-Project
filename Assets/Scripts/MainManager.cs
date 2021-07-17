@@ -12,12 +12,13 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public GameObject GameOverText;
+    public GameObject ScoreButton;
     
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
-
+    
     
     // Start is called before the first frame update
     void Start()
@@ -68,9 +69,40 @@ public class MainManager : MonoBehaviour
         ScoreText.text = $"Score : {m_Points}";
     }
 
+    public int GetLowestScorePos(List<int> scores) //gets index of lowest score
+    {
+        int lowestScore = scores[0];
+        int lowestScorePos = 0;
+        for (int i = 0; i < scores.Count; i++)
+        {
+            if (scores[i] < lowestScore)
+            {
+                lowestScore = scores[i];
+                lowestScorePos = i;
+            }
+        }
+        return lowestScorePos;
+    }
+
+
     public void GameOver()
     {
         m_GameOver = true;
+        if (PersistenceManager.Instance.HighScores.Count >= 3) //checks if high score count is greater or equal to 3
+        {
+            int lowestScore = PersistenceManager.Instance.GetLowestScore(PersistenceManager.Instance.HighScores);
+            if (lowestScore < m_Points) //checks if the lowest score is less than the score of the current game
+            {
+                int lowestScoreIndex = GetLowestScorePos(PersistenceManager.Instance.HighScores);
+                PersistenceManager.Instance.HighScores[lowestScoreIndex] = m_Points; //replaces lowest score with the current game's score at the index of the lowest score
+            }
+        }
+        else //adds current score to list of high scores if high score list count is less than 3
+            PersistenceManager.Instance.HighScores.Add(m_Points);
+
+        PersistenceManager.Instance.SaveScores(); //saves high scores when game is over
         GameOverText.SetActive(true);
+        ScoreButton.SetActive(true);
+
     }
 }
